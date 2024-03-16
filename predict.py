@@ -1,6 +1,5 @@
 import tensorflow as tf
 import pickle
-from keras.preprocessing.sequence import pad_sequences
 
 # Load the trained model
 model = tf.keras.models.load_model('chatbot_model')
@@ -9,15 +8,19 @@ model = tf.keras.models.load_model('chatbot_model')
 with open('tokenizer.pickle', 'rb') as handle:
     tokenizer = pickle.load(handle)
 
-def preprocess_input(user_query, max_length=4):  # Adjust max_length to match your model's expected input length
-    # Tokenize and pad the user query
+# Load max_length (assuming it's saved during training)
+with open('max_length.pickle', 'rb') as handle:
+    max_length = pickle.load(handle)
+
+def preprocess_input(user_query):
+    # Tokenize and pad the user query using tf.keras.preprocessing.sequence.pad_sequences
     sequence = tokenizer.texts_to_sequences([user_query])
-    padded_sequence = pad_sequences(sequence, maxlen=max_length, padding='post')
+    padded_sequence = tf.keras.preprocessing.sequence.pad_sequences(sequence, maxlen=max_length, padding='post')
     return padded_sequence
 
 def get_response(user_query):
     # Preprocess the user query
-    processed_query = preprocess_input(user_query, max_length=4)  # Ensure this matches the expected input length of your model
+    processed_query = preprocess_input(user_query)
     
     # Make a prediction
     prediction = model.predict(processed_query)
